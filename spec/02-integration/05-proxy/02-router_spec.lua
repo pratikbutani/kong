@@ -352,12 +352,14 @@ for _, strategy in helpers.each_strategy() do
         routes = insert_routes(bp, {
           {
             protocols = { "grpc", "grpcs" },
-            hosts = { "grpc1" },
+            hosts = { "grpc1", "grpc1:"..helpers.get_proxy_port(false, true),
+              "grpc1:"..helpers.get_proxy_port(true, true) },
             service = service,
           },
           {
             protocols = { "grpc", "grpcs" },
-            hosts = { "grpc2" },
+            hosts = { "grpc2", "grpc2:"..helpers.get_proxy_port(false, true),
+              "grpc2:"..helpers.get_proxy_port(true, true) },
             service = service,
           },
           {
@@ -386,7 +388,7 @@ for _, strategy in helpers.each_strategy() do
       end)
 
       it("restricts a route to its 'hosts' if specified", function()
-        local ok, resp = proxy_client_grpc({
+        local ok, resp = assert(proxy_client_grpc({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -396,12 +398,12 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "grpc1",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[1].id, resp, nil, true)
 
-        ok, resp = proxy_client_grpc({
+        ok, resp = assert(proxy_client_grpc({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -411,14 +413,14 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "grpc2",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[2].id, resp, nil, true)
       end)
 
       it("restricts a route to its 'hosts' if specified (grpcs)", function()
-        local ok, resp = proxy_client_grpcs({
+        local ok, resp = assert(proxy_client_grpcs({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -428,12 +430,12 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "grpc1",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[1].id, resp, nil, true)
 
-        ok, resp = proxy_client_grpc({
+        ok, resp = assert(proxy_client_grpc({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -443,14 +445,14 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "grpc2",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[2].id, resp, nil, true)
       end)
 
       it("restricts a route to its wildcard 'hosts' if specified", function()
-        local ok, resp = proxy_client_grpc({
+        local ok, resp = assert(proxy_client_grpc({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -460,14 +462,14 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "service1.grpc.com",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[5].id, resp, nil, true)
       end)
 
       it("restricts a route to its wildcard 'hosts' if specified (grpcs)", function()
-        local ok, resp = proxy_client_grpcs({
+        local ok, resp = assert(proxy_client_grpcs({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -477,14 +479,14 @@ for _, strategy in helpers.each_strategy() do
             ["-H"] = "'kong-debug: 1'",
             ["-authority"] = "service1.grpc.com",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[5].id, resp, nil, true)
       end)
 
       it("restricts a route to its 'paths' if specified", function()
-        local ok, resp = proxy_client_grpc({
+        local ok, resp = assert(proxy_client_grpc({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -493,12 +495,12 @@ for _, strategy in helpers.each_strategy() do
             ["-v"] = true,
             ["-H"] = "'kong-debug: 1'",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[3].id, resp, nil, true)
 
-        ok, resp = proxy_client_grpcs({
+        ok, resp = assert(proxy_client_grpcs({
           service = "hello.HelloService.LotsOfReplies",
           body = {
             greeting = "world!"
@@ -507,14 +509,14 @@ for _, strategy in helpers.each_strategy() do
             ["-v"] = true,
             ["-H"] = "'kong-debug: 1'",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[4].id, resp, nil, true)
       end)
 
       it("restricts a route to its 'paths' if specified (grpcs)", function()
-        local ok, resp = proxy_client_grpcs({
+        local ok, resp = assert(proxy_client_grpcs({
           service = "hello.HelloService.SayHello",
           body = {
             greeting = "world!"
@@ -523,7 +525,7 @@ for _, strategy in helpers.each_strategy() do
             ["-v"] = true,
             ["-H"] = "'kong-debug: 1'",
           }
-        })
+        }))
         assert.truthy(ok)
         assert.truthy(resp)
         assert.matches("kong-route-id: " .. routes[3].id, resp, nil, true)
@@ -865,7 +867,7 @@ for _, strategy in helpers.each_strategy() do
         routes = insert_routes(bp, {
           {
             preserve_host = true,
-            hosts         = { "preserved.com" },
+            hosts         = { "preserved.com", "preserved.com:123" },
             service       = {
               path        = "/request"
             },
@@ -1312,7 +1314,7 @@ for _, strategy in helpers.each_strategy() do
       end)
     end)
 
-    describe("[snis] for gRPCs connections", function()
+    describe("[snis #grpc] for gRPCs connections", function()
       local routes
       local grpcs_proxy_ssl_client
 

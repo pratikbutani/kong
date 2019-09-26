@@ -355,7 +355,7 @@ describe("routes schema", function()
     end)
   end)
 
-  describe("hosts attribute", function()
+  describe("hosts attribute #host", function()
     -- refusals
     it("must be a string", function()
       local route = {
@@ -379,7 +379,7 @@ describe("routes schema", function()
       assert.equal("length must be at least 1", err.hosts[1])
     end)
 
-    it("rejects invalid hostnames", function()
+    it("rejects invalid hostnames #host", function()
       local invalid_hosts = {
         "/example",
         ".example",
@@ -401,22 +401,11 @@ describe("routes schema", function()
 
         local ok, err = Routes:validate(route)
         assert.falsy(ok)
-        assert.equal("invalid value: " .. invalid_hosts[i], err.hosts[1])
+        assert.equal("invalid hostname: " .. invalid_hosts[i], err.hosts[1])
       end
     end)
 
-    it("rejects values with a valid port", function()
-      local route = {
-        hosts = { "example.com:80" },
-        protocols = { "http" },
-      }
-
-      local ok, err = Routes:validate(route)
-      assert.falsy(ok)
-      assert.equal("must not have a port", err.hosts[1])
-    end)
-
-    it("rejects values with an invalid port", function()
+    it("rejects values with an invalid port #host", function()
       local route = {
         hosts = { "example.com:1000000" },
         protocols = { "http" },
@@ -424,10 +413,10 @@ describe("routes schema", function()
 
       local ok, err = Routes:validate(route)
       assert.falsy(ok)
-      assert.equal("must not have a port", err.hosts[1])
+      assert.equal("invalid port number", err.hosts[1])
     end)
 
-    it("rejects invalid wildcard placement", function()
+    it("rejects invalid wildcard placement #host", function()
       local invalid_hosts = {
         "*example.com",
         "www.example*",
@@ -447,7 +436,7 @@ describe("routes schema", function()
       end
     end)
 
-    it("rejects host with too many wildcards", function()
+    it("rejects #host with too many wildcards", function()
       local invalid_hosts = {
         "*.example.*",
         "**.example.com",
@@ -468,7 +457,7 @@ describe("routes schema", function()
     end)
 
     -- acceptance
-    it("accepts valid hosts", function()
+    it("accepts valid hosts #host", function()
       local valid_hosts = {
         "hello.com",
         "hello.fr",
@@ -482,6 +471,8 @@ describe("routes schema", function()
         "hello.abcd",
         "example_api.com",
         "localhost",
+        "example.com:80",
+        "example.com:8080",
         -- below:
         -- punycode examples from RFC3492;
         -- https://tools.ietf.org/html/rfc3492#page-14
@@ -511,10 +502,11 @@ describe("routes schema", function()
       end
     end)
 
-    it("accepts hosts with valid wildcard", function()
+    it("accepts hosts with valid wildcard #host", function()
       local valid_hosts = {
         "example.*",
         "*.example.org",
+        "*.example.org:321",
       }
 
       for i = 1, #valid_hosts do

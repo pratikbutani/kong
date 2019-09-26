@@ -661,6 +661,47 @@ _M.hostname_type = function(name)
   return "name"
 end
 
+--- splits an optional ':port' section from a hostname
+-- the port section must be decimal digits only.
+-- brackets ('[]') are peeled off the hostname if present.
+-- if there's more than one colon and no brackets, no split is possible.
+-- on non-parseable input, returns name unchanged,
+-- every string input produces at least one string output.
+-- @param name (string) the string to split.
+-- @return hostname (string)
+-- @return port (as number) or nil if not found
+function _M.split_port(name)
+  local ZERO, NINE, LEFTBRACKET, RIGHTBRACKET = ('09[]'):byte(1, -1)
+
+  if name:byte(1) == LEFTBRACKET then
+    if name:byte(-1) == RIGHTBRACKET then
+      return name:sub(2, -2)
+    end
+    local splitpos = name:find(']:', 2, true)
+    if splitpos then
+      local port = tonumber(name:sub(splitpos+2))
+      if port or splitpos == #name-1 then
+        return name:sub(2, splitpos-1), port
+      end
+    end
+    return name
+  end
+
+  local firstcolon = name:find(':', 1, true)
+  if not firstcolon then
+    return name
+  end
+
+  for i = firstcolon+1, #name do
+    local c = name:byte(i)
+    if c < ZERO or c > NINE then
+      return name
+    end
+  end
+  return name:sub(1, firstcolon-1), tonumber(name:sub(firstcolon+1))
+end
+
+
 --- parses, validates and normalizes an ipv4 address.
 -- @param address the string containing the address (formats; ipv4, ipv4:port)
 -- @return normalized address (string) + port (number or nil), or alternatively nil+error
