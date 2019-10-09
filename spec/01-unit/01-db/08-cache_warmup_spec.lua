@@ -77,17 +77,17 @@ describe("cache_warmup", function()
         my_entity = mock_entity(db_data, "my_entity", "aaa"),
         another_entity = mock_entity(db_data, "another_entity", "xxx"),
       },
-      cache = mock_cache(cache_table),
+      core_cache = mock_cache(cache_table),
     }
 
     cache_warmup._mock_kong(kong)
 
     assert.truthy(cache_warmup.execute({"my_entity", "another_entity"}))
 
-    assert.same(kong.cache:get("111").bbb, 222)
-    assert.same(kong.cache:get("333").bbb, 444)
-    assert.same(kong.cache:get("555").yyy, 666)
-    assert.same(kong.cache:get("777").yyy, 888)
+    assert.same(kong.core_cache:get("111").bbb, 222)
+    assert.same(kong.core_cache:get("333").bbb, 444)
+    assert.same(kong.core_cache:get("555").yyy, 666)
+    assert.same(kong.core_cache:get("777").yyy, 888)
   end)
 
   it("does not cache routes", function()
@@ -109,7 +109,7 @@ describe("cache_warmup", function()
         my_entity = mock_entity(db_data, "my_entity", "aaa"),
         routes = mock_entity(db_data, "routes", "xxx"),
       },
-      cache = mock_cache(cache_table),
+      core_cache = mock_cache(cache_table),
       log = mock_log(nil, logged_notices),
     }
 
@@ -119,10 +119,10 @@ describe("cache_warmup", function()
 
     assert.match("the 'routes' entry is ignored", logged_notices[1], 1, true)
 
-    assert.same(kong.cache:get("111").bbb, 222)
-    assert.same(kong.cache:get("333").bbb, 444)
-    assert.same(kong.cache:get("555", nil, function() return "nope" end), "nope")
-    assert.same(kong.cache:get("777", nil, function() return "nope" end), "nope")
+    assert.same(kong.core_cache:get("111").bbb, 222)
+    assert.same(kong.core_cache:get("333").bbb, 444)
+    assert.same(kong.core_cache:get("555", nil, function() return "nope" end), "nope")
+    assert.same(kong.core_cache:get("777", nil, function() return "nope" end), "nope")
   end)
 
   it("warms up DNS when caching services", function()
@@ -145,7 +145,7 @@ describe("cache_warmup", function()
         my_entity = mock_entity(db_data, "my_entity", "aaa"),
         services = mock_entity(db_data, "services", "name"),
       },
-      cache = mock_cache(cache_table),
+      core_cache = mock_cache(cache_table),
       dns = {
         toip = function(query)
           table.insert(dns_queries, query)
@@ -159,11 +159,11 @@ describe("cache_warmup", function()
 
     ngx.sleep(0) -- yield so that async DNS caching happens
 
-    assert.same(kong.cache:get("111").bbb, 222)
-    assert.same(kong.cache:get("333").bbb, 444)
-    assert.same(kong.cache:get("a").host, "example.com")
-    assert.same(kong.cache:get("b").host, "1.2.3.4")
-    assert.same(kong.cache:get("c").host, "example.test")
+    assert.same(kong.core_cache:get("111").bbb, 222)
+    assert.same(kong.core_cache:get("333").bbb, 444)
+    assert.same(kong.core_cache:get("a").host, "example.com")
+    assert.same(kong.core_cache:get("b").host, "1.2.3.4")
+    assert.same(kong.core_cache:get("c").host, "example.test")
 
     -- skipped IP entry
     assert.same({ "example.com", "example.test" }, dns_queries)
@@ -174,7 +174,7 @@ describe("cache_warmup", function()
 
     local kong = {
       db = {},
-      cache = {},
+      core_cache = {},
       log = mock_log(logged_warnings),
     }
 
@@ -205,7 +205,7 @@ describe("cache_warmup", function()
         my_entity = mock_entity(db_data, "my_entity", "aaa"),
         another_entity = mock_entity(db_data, "another_entity", "xxx"),
       },
-      cache = mock_cache(cache_table, 3),
+      core_cache = mock_cache(cache_table, 3),
       log = mock_log(logged_warnings),
       configuration = {
         mem_cache_size = 12345,
@@ -218,11 +218,11 @@ describe("cache_warmup", function()
 
     assert.match("cache warmup has been stopped", logged_warnings[1], 1, true)
 
-    assert.same(kong.cache:get("111").bbb, 222)
-    assert.same(kong.cache:get("333").bbb, 444)
-    assert.same(kong.cache:get("555").yyy, 666)
-    assert.same(kong.cache:get("777", nil, function() return "nope" end), "nope")
-    assert.same(kong.cache:get("999", nil, function() return "nope" end), "nope")
+    assert.same(kong.core_cache:get("111").bbb, 222)
+    assert.same(kong.core_cache:get("333").bbb, 444)
+    assert.same(kong.core_cache:get("555").yyy, 666)
+    assert.same(kong.core_cache:get("777", nil, function() return "nope" end), "nope")
+    assert.same(kong.core_cache:get("999", nil, function() return "nope" end), "nope")
   end)
 
 end)

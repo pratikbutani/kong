@@ -66,7 +66,7 @@ local function cache_warmup_single_entity(dao)
 
     local cache_key = dao:cache_key(entity)
 
-    local ok, err = kong.cache:safe_set(cache_key, entity)
+    local ok, err = kong.core_cache:safe_set(cache_key, entity)
     if not ok then
       return nil, err
     end
@@ -87,7 +87,7 @@ end
 -- Loads entities from the database into the cache, for rapid subsequent
 -- access. This function is intented to be used during worker initialization.
 function cache_warmup.execute(entities)
-  if not kong.cache then
+  if not kong.core_cache then
     return true
   end
 
