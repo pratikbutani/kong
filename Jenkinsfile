@@ -15,6 +15,8 @@ pipeline {
         AWS_ACCESS_KEY = credentials('AWS_ACCESS_KEY')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         KONG_BUILD_TOOLS = "origin/feat/kong-jenkins"
+        BUILDX = "false"
+        DOCKER_MACHINE_ARM64_NAME = "jenkins-kong-${env.BUILD_NUMBER}"
     }
     stages {
         stage('Nightly Releases') {
@@ -31,9 +33,9 @@ pipeline {
                         RESTY_IMAGE_TAG = 'trusty'
                         KONG_SOURCE_LOCATION = "${env.WORKSPACE}"
                         KONG_BUILD_TOOLS_LOCATION = "${env.WORKSPACE}/../kong-build-tools"
-                        DOCKER_MACHINE_ARM64_NAME = "${env.NODE_NAME}"
                     }
                     steps {
+                        sh 'printenv'
                         sh 'make setup-kong-build-tools'
                         sh 'mkdir -p $HOME/bin'
                         sh 'sudo ln -s $HOME/bin/kubectl /usr/local/bin/kubectl'
@@ -41,7 +43,7 @@ pipeline {
                         dir('../kong-build-tools'){ sh 'make setup-ci' }
                         sh 'export RESTY_IMAGE_TAG=trusty && make nightly-release'
                         dir('../kong-build-tools'){ sh 'make setup-ci' }
-                        sh 'export RESTY_IMAGE_TAG=xenial && make nightly-release'
+                        sh 'export BUILDX=true RESTY_IMAGE_TAG=xenial && make nightly-release'
                         dir('../kong-build-tools'){ sh 'make setup-ci' }
                         sh 'export RESTY_IMAGE_TAG=bionic && make nightly-release'
                     }
@@ -57,9 +59,9 @@ pipeline {
                         RESTY_IMAGE_BASE = 'debian'
                         KONG_SOURCE_LOCATION = "${env.WORKSPACE}"
                         KONG_BUILD_TOOLS_LOCATION = "${env.WORKSPACE}/../kong-build-tools"
-                        DOCKER_MACHINE_ARM64_NAME = "${env.NODE_NAME}"
                     }
                     steps {
+                        sh 'printenv'
                         sh 'make setup-kong-build-tools'
                         sh 'mkdir -p $HOME/bin'
                         sh 'sudo ln -s $HOME/bin/kubectl /usr/local/bin/kubectl'
